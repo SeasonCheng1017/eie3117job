@@ -135,3 +135,26 @@ CORS_ALLOWED_ORIGINS = [
     "http://119.246.227.195:5173",
     "http://127.0.0.1:5173",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+}
+
+DJOSER = {
+    'USER_ID_FIELD': 'id',
+    'LOGIN_FIELD': 'username',
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'SERIALIZERS': {
+        # use our custom serializer for both plain and retype flows
+        'user_create': 'product.serializers.CustomUserCreateSerializer',
+        'user_create_password_retype': 'product.serializers.CustomUserCreateSerializer',
+        'user': 'product.serializers.CustomUserSerializer',
+        # ensure /users/me/ returns profile info as well
+        'current_user': 'product.serializers.CustomUserSerializer',
+    },
+}

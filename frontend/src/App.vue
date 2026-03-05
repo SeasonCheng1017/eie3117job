@@ -8,6 +8,13 @@
         <div class="navbar-end">
           <div class="navbar-item">
             <div class="buttons">
+              <!-- Show Create Job for company users -->
+              <template v-if="$store.state.isAuthenticated && $store.state.userProfile?.user_type === 'company'">
+                <RouterLink to="/create-job" class="button is-success">Create Job</RouterLink>
+                <!-- Link to applications list for company users -->
+                <RouterLink to="/applications" class="button is-info">Applications</RouterLink>
+              </template>
+              
               <!-- Show My Account if logged in -->
               <template v-if="$store.state.isAuthenticated">
                 <RouterLink to="/my-account" class="button is-light">My Account</RouterLink>
@@ -29,7 +36,7 @@
     </section>
 
     <footer class="footer">
-      <p class="content has-text-centered">Copyright (c) 2026 JobHunt</p>
+      <p class="content has-text-centered">Copyright (c) 2026 EIE3117 G17 JobHunt</p>
     </footer>
 </template>
 

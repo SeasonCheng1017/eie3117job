@@ -7,14 +7,16 @@
         <form @submit.prevent="submitForm">
           <!-- User Type (Required by Spec) -->
           <div class="field">
-            <label class="label">I am a...</label>
+            <label class="label"><strong>Sign up as:</strong></label>
             <div class="control">
-              <div class="select is-fullwidth">
-                <select v-model="form.user_type">
-                  <option value="individual">Individual User (Job Seeker)</option>
-                  <option value="company">Company User (Employer)</option>
-                </select>
-              </div>
+              <label class="radio" style="display: block; margin-bottom: 0.5rem;">
+                <input type="radio" v-model="form.user_type" value="individual" name="user_type">
+                <span style="margin-left: 0.5rem;">Job Seeker (Individual)</span>
+              </label>
+              <label class="radio" style="display: block;">
+                <input type="radio" v-model="form.user_type" value="company" name="user_type">
+                <span style="margin-left: 0.5rem;">Employer (Company)</span>
+              </label>
             </div>
           </div>
 
@@ -47,6 +49,14 @@
             <label class="label">Password</label>
             <div class="control">
               <input type="password" class="input" v-model="form.password" required>
+            </div>
+          </div>
+
+          <!-- Password Confirmation -->
+          <div class="field">
+            <label class="label">Confirm Password</label>
+            <div class="control">
+              <input type="password" class="input" v-model="form.password_retype" required>
             </div>
           </div>
           
@@ -87,6 +97,7 @@ export default {
       form: {
         username: '',
         password: '',
+        password_retype: '',
         email: '',
         nickname: '',
         user_type: 'individual'
@@ -109,6 +120,8 @@ export default {
       const formData = new FormData()
       formData.append('username', this.form.username)
       formData.append('password', this.form.password)
+      // djoser expects `re_password` for confirmation
+      formData.append('re_password', this.form.password_retype)
       formData.append('email', this.form.email)
       formData.append('nickname', this.form.nickname)
       formData.append('user_type', this.form.user_type)
@@ -116,7 +129,7 @@ export default {
         formData.append('profile_image', this.profileImage)
       }
 
-      axios.post('http://localhost:8000/api/v1/users/', formData, {
+      axios.post('/api/v1/users/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       .then(() => {
@@ -126,7 +139,28 @@ export default {
       .catch(error => {
         if (error.response?.data) {
           for (const property in error.response.data) {
-            this.errors.push(`${property}: ${error.response.data[property]}`)
+            // hide internal re_password field and rename for display
+            if (property === 're_password') {
+              const messages = Array.isArray(error.response.data[property])
+                ? error.response.data[property]
+                : [error.response.data[property]]
+              messages.forEach(msg => {
+                this.errors.push(`Password confirmation: ${msg}`)
+              })
+              continue
+            }
+            const friendlyName = property === 'password' ? 'Password' : property
+            const messages = Array.isArray(error.response.data[property])
+              ? error.response.data[property]
+              : [error.response.data[property]]
+            messages.forEach(msg => {
+              // convert some common password validator messages
+              let text = msg
+              if (/too common/i.test(msg) || /entirely numeric/i.test(msg)) {
+                text = 'Weak password. Choose a stronger combination (letters and numbers).'
+              }
+              this.errors.push(`${friendlyName}: ${text}`)
+            })
           }
           console.log(JSON.stringify(error.response.data))
         } else if (error.message) {

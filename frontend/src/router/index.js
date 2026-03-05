@@ -6,6 +6,9 @@ import SignUp from '../views/SignUp.vue'
 import MyAccount from '../views/MyAccount.vue'
 import CreateJob from '../views/CreateJob.vue'
 import JobList from '../views/JobList.vue'
+import JobDetail from '../views/JobDetail.vue'
+import ApplicationsList from '../views/ApplicationsList.vue'
+import ApplicationDetail from '../views/ApplicationDetail.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,7 +19,10 @@ const router = createRouter({
     { path: '/sign-up', name: 'sign-up', component: SignUp },
     { path: '/my-account', name: 'my-account', component: MyAccount },
     { path: '/create-job', name: 'create-job', component: CreateJob },
-    { path: '/jobs', name: 'jobs', component: JobList }
+    { path: '/jobs', name: 'jobs', component: JobList },
+    { path: '/jobs/:id', name: 'job-detail', component: JobDetail },
+    { path: '/applications', name: 'applications', component: ApplicationsList },
+    { path: '/applications/:id', name: 'application-detail', component: ApplicationDetail }
   ]
 })
 

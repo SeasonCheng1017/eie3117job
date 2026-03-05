@@ -32,6 +32,12 @@ export default {
         this.error = 'Please provide a message and upload your CV.'
         return
       }
+      
+      if (!this.$store.state.isAuthenticated) {
+        this.error = 'You must be logged in to apply.'
+        return
+      }
+      
       this.submitting = true
       this.error = ''
       this.success = false
@@ -40,8 +46,6 @@ export default {
       const formData = new FormData()
       formData.append('message', this.message)
       formData.append('cv', this.cvFile)
-      // TODO: replace this hard-coded profile id with logged-in user's profile
-      formData.append('applicant_profile_id', '1')
 
       axios
         .post(`/api/v1/jobs/${id}/apply/`, formData, {
@@ -54,7 +58,7 @@ export default {
         })
         .catch((error) => {
           console.error(error)
-          this.error = 'Failed to submit application.'
+          this.error = error.response?.data?.detail || 'Failed to submit application.'
         })
         .finally(() => {
           this.submitting = false
@@ -72,9 +76,10 @@ export default {
     <div class="container">
       <h1 class="title">{{ job.title }}</h1>
       <h2 class="subtitle">
-        {{ job.company.company_name || job.company.nickname }}
-        · {{ job.location }}
+        <strong>Employer:</strong> {{ job.company.company_name || job.company.nickname }}
       </h2>
+
+      <p><strong>Work Place:</strong> {{ job.location }}</p>
 
       <p><strong>Salary:</strong> {{ job.salary }}</p>
 

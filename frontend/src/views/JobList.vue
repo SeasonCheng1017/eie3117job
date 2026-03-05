@@ -39,30 +39,29 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'JobList',
   data() {
     return {
-      jobs: [
-        {
-          id: 1,
-          title: 'Frontend Developer',
-          requirement: 'Vue.js, HTML, CSS',
-          duty: 'Build UI components',
-          salary: 'HKD 25,000'
-        },
-        {
-          id: 2,
-          title: 'Backend Developer',
-          requirement: 'Django, REST API',
-          duty: 'Develop APIs and business logic',
-          salary: 'HKD 28,000'
-        }
-      ]
+      jobs: []
     }
   },
   mounted() {
     document.title = 'Job List - JobHunt'
+    this.fetchJobs()
+  },
+  methods: {
+    fetchJobs() {
+      axios.get('/api/v1/jobs/')
+        .then(response => {
+          this.jobs = response.data
+        })
+        .catch(error => {
+          console.error('Failed to fetch jobs:', error)
+        })
+    }
   }
 }
 </script>

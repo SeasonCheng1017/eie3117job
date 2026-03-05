@@ -64,10 +64,14 @@ export default {
         const token = response.data.auth_token
         
         this.$store.commit('setToken', token)
-        
         axios.defaults.headers.common['Authorization'] = "Token " + token
         localStorage.setItem('token', token)
-        
+        // also set cookie for persistence
+        document.cookie = `token=${token}; path=/; max-age=${30*24*60*60}`
+
+        // pull user details now that we're authenticated
+        this.$store.dispatch('loadUser')
+
         alert('Logged in successfully!')
         
         // Redirect to where they came from or home
@@ -75,13 +79,26 @@ export default {
         this.$router.push(toPath)
       })
       .catch(error => {
-        if (error.response) {
+        if (error.response?.data) {
           for (const property in error.response.data) {
-            this.errors.push(`${property}: ${error.response.data[property]}`)
+            const messages = Array.isArray(error.response.data[property])
+              ? error.response.data[property]
+              : [error.response.data[property]]
+            messages.forEach(msg => {
+              let label = property
+              if (property === 'non_field_errors') {
+                // typical invalid credentials message
+                label = ''
+              }
+              if (property === 'username') label = 'Username'
+              if (property === 'password') label = 'Password'
+              const text = label ? `${label}: ${msg}` : msg
+              this.errors.push(text)
+            })
           }
         } else {
           this.errors.push('Something went wrong. Please try again.')
-          console.log(JSON.stringify(error))
+          console.error(error)
         }
       })
     }

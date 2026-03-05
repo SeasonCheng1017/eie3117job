@@ -13,6 +13,13 @@
           </div>
 
           <div class="field">
+            <label class="label">Location</label>
+            <div class="control">
+              <input class="input" v-model="location" required>
+            </div>
+          </div>
+
+          <div class="field">
             <label class="label">Job Requirement</label>
             <div class="control">
               <textarea class="textarea" v-model="requirement" required></textarea>
@@ -38,7 +45,9 @@
           </div>
 
           <div class="field">
-            <button class="button is-primary is-fullwidth">Create Job</button>
+            <button class="button is-primary is-fullwidth" :disabled="submitting">
+              {{ submitting ? 'Creating...' : 'Create Job' }}
+            </button>
           </div>
         </form>
       </div>
@@ -54,39 +63,62 @@ export default {
   data() {
     return {
       title: '',
+      location: '',
       requirement: '',
       duty: '',
       salary: '',
-      errors: []
+      errors: [],
+      submitting: false
     }
   },
   mounted() {
     document.title = 'Create Job - JobHunt'
+    // Check if user is authenticated and is a company
+    if (!this.$store.state.isAuthenticated) {
+      this.$router.push('/log-in?to=/create-job')
+      return
+    }
+    if (this.$store.state.userProfile?.user_type !== 'company') {
+      alert('Only company users can create jobs.')
+      this.$router.push('/')
+    }
   },
   methods: {
     submitForm() {
       this.errors = []
+      this.submitting = true
 
       const payload = {
         title: this.title,
+        location: this.location,
         requirement: this.requirement,
         duty: this.duty,
-        salary: this.salary
+        salary: this.salary,
+        is_open: true
       }
 
-      axios.post('http://localhost:8000/api/v1/jobs/', payload)
+      axios.post('/api/v1/jobs/', payload)
         .then(() => {
-          alert('Job created!')
+          alert('Job created successfully!')
           this.$router.push('/jobs')
         })
         .catch(error => {
           if (error.response?.data) {
             for (const property in error.response.data) {
-              this.errors.push(`${property}: ${error.response.data[property]}`)
+              const messages = Array.isArray(error.response.data[property]) 
+                ? error.response.data[property] 
+                : [error.response.data[property]]
+              messages.forEach(msg => {
+                this.errors.push(`${property}: ${msg}`)
+              })
             }
           } else {
             this.errors.push('Something went wrong. Please try again.')
+            console.error(error)
           }
+        })
+        .finally(() => {
+          this.submitting = false
         })
     }
   }
